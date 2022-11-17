@@ -1,0 +1,23 @@
+{
+  "name": "314coin",
+  "version": "1.0.0",
+  "description": "A Blockchain for a school project.",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "nodemon src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/314ShadePi/314coin.git"
+  },
+  "keywords": [
+    "crypto",
+    "blockchain"
+  ],
+  "author": "314ShadePi",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/314ShadePi/314coin/issues"
+  },
+  "homepage": "https://github.com/314ShadePi/314coin#readme"
+}
