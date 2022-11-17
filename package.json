@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/314ShadePi/314coin/issues"
   },
-  "homepage": "https://github.com/314ShadePi/314coin#readme"
+  "homepage": "https://github.com/314ShadePi/314coin#readme",
+  "dependencies": {
+    "crypto-js": "^4.1.1"
+  }
 }
