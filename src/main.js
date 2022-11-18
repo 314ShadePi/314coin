@@ -1,24 +1,30 @@
 const SHA256 = require("crypto-js/sha256");
 
+class Transaction {
+    constructor(fromAddress, toAddress, amount) {
+        this.fromAddress = fromAddress;
+        this.toAddress = toAddress;
+        this.amount = amount;
+    }
+}
+
 class Block {
-    constructor(index, timestamp, data, previousHash = '') {
-        this.index = index;
+    constructor(timestamp, transactions, previousHash = '') {
         this.timestamp = timestamp;
-        this.data = data;
+        this.transactions = transactions;
         this.previousHash = previousHash;
         this.hash = this.calculateHash();
         this.nonce = 0;
     }
 
     calculateHash() {
-        return SHA256(this.index + this.timestamp + this.previousHash + JSON.stringify(this.data) + this.nonce).toString();
+        return SHA256(this.timestamp + this.previousHash + JSON.stringify(this.transactions) + this.nonce).toString();
     }
 
     mineBlock(difficulty) {
         while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
             this.nonce++;
             this.hash = this.calculateHash();
-            console.log(this.index + "==" + this.hash + "==" + this.nonce);
         }
 
         console.log("Block mined: " + this.hash);
@@ -28,21 +34,46 @@ class Block {
 class Blockchain {
     constructor() {
         this.chain = [this.createGenesisBlock()];
-        this.difficulty = 4;
+        this.difficulty = 2;
+        this.pendingTransactions = [];
+        this.miningReward = 100;
     }
 
     createGenesisBlock() {
-        return new Block(0, "0000/00/00", "Genesis block", "0"); // ALWAYS use ISO8601 for dates.
+        return new Block("0000/00/00", "Genesis block", "0"); // ALWAYS use ISO8601 for dates.
     }
 
     getLatestBlock() {
         return this.chain[this.chain.length - 1];
     }
 
-    addBlock(newBlock) {
-        newBlock.previousHash = this.getLatestBlock().hash;
-        newBlock.mineBlock(this.difficulty);
-        this.chain.push(newBlock);
+    minePendingTransactions(miningRewardAddress) {
+        let block = new Block(Date.now(), this.pendingTransactions/*, this.getLatestBlock().hash*/);
+        block.mineBlock(this.difficulty);
+        console.log("Block successfully mined!");
+        this.chain.push(block);
+        this.pendingTransactions = [
+            new Transaction(null, miningRewardAddress, this.miningReward),
+        ];
+    }
+
+    createTransaction(transaction) {
+        this.pendingTransactions.push(transaction);
+    }
+
+    getBalanceOfAddress(address) {
+        let balance = 0;
+        for (const block of this.chain) {
+            for (const transaction of block.transactions) {
+                if (transaction.fromAddress === address) {
+                    balance -= transaction.amount;
+                }
+                if (transaction.toAddress === address) {
+                    balance += transaction.amount;
+                }
+            }
+        }
+        return balance;
     }
 
     isChainValid() {
@@ -81,20 +112,23 @@ class Blockchain {
 }
 
 let coin = new Blockchain();
-coin.addBlock(new Block(1, "2022/11/17", { amount: 4 } ));
-coin.addBlock(new Block(2, "2022/11/17", { amount: 10 } ));
 
-for (let i = 3; i <= 7; i++) {
-    coin.addBlock(new Block(i, "2022/11/17", { amount: i / 16 * 314 / Math.random() * Math.random() }));
+coin.createTransaction(new Transaction("address1", "address2", 100));
+coin.createTransaction(new Transaction("address2", "address1", 50));
+
+console.log('\n Starting miner...');
+coin.minePendingTransactions("314-MAIN-REW");
+
+console.log('\n Balance of 314-MAIN-REW is: ' + coin.getBalanceOfAddress("314-MAIN-REW"));
+
+console.log("\n Starting miner...");
+coin.minePendingTransactions("314-MAIN-REW");
+
+console.log("\n Balance of 314-MAIN-REW is: " + coin.getBalanceOfAddress("314-MAIN-REW"));
+
+while (false) {
+    console.log("\n Starting miner...");
+	coin.minePendingTransactions("314-MAIN-REW");
+
+    console.log("\n Balance of 314-MAIN-REW is: " + coin.getBalanceOfAddress("314-MAIN-REW"));
 }
-
-console.log(JSON.stringify(coin, null, 4));
-
-console.log('Is blockchain valid? ' + coin.isChainValid());
-console.log('c_Is blockchain valid? ' + coin.cIsChainValid());
-
-coin.chain[2].data = { amount: 100000000 };
-coin.chain[2].data = coin.chain[2].calculateHash();
-
-console.log('Is blockchain valid? ' + coin.isChainValid());
-console.log('c_Is blockchain valid? ' + coin.cIsChainValid());
